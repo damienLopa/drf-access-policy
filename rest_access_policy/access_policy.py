@@ -1,3 +1,6 @@
+import jwt
+import base64
+
 import importlib
 from typing import List
 
@@ -13,10 +16,21 @@ class AccessPolicy(permissions.BasePermission):
     group_prefix = "group:"
     id_prefix = "id:"
 
+    def get_token_payload(self, request):
+        payload = {}
+
+        authorization = request.META.get("HTTP_AUTHORIZATION", "")
+        try:
+            token = authorization.split("Bearer ")[1]
+        except IndexError:
+            return {}
+
+        payload = jwt.decode(token, verify=False)
+        return payload
+
     def has_permission(self, request, view) -> bool:
         action = self._get_invoked_action(view)
         statements = self.get_policy_statements(request, view)
-
         if len(statements) == 0:
             return False
 
@@ -25,11 +39,8 @@ class AccessPolicy(permissions.BasePermission):
     def get_policy_statements(self, request, view) -> List[dict]:
         return self.statements
 
-    def get_user_group_values(self, user) -> List[str]:
-        if user.is_anonymous:
-            return []
-        prefetch_related_objects([user], "groups")
-        return [g.name for g in user.groups.all()]
+    def get_user_group_values(self, token_payload) -> List[str]:
+        return [g for g in token_payload["scope"].split(" ")]
 
     @classmethod
     def scope_queryset(cls, request, qs):
@@ -103,7 +114,8 @@ class AccessPolicy(permissions.BasePermission):
                 found = True
             else:
                 if not user_roles:
-                    user_roles = self.get_user_group_values(user)
+                    token_payload = self.get_token_payload(request)
+                    user_roles = self.get_user_group_values(token_payload)
 
                 for user_role in user_roles:
                     if self.group_prefix + user_role in principals:
