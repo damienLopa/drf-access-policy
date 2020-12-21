@@ -1,4 +1,6 @@
-# Django REST - Access Policy
+# Django REST - Access Policy with JWT Oauth token
+
+Forked from https://github.com/rsinger86/drf-access-policy
 
 [![Package version](https://badge.fury.io/py/drf-access-policy.svg)](https://pypi.python.org/pypi/drf-access-policy)
 [![Python versions](https://img.shields.io/pypi/status/drf-access-policy.svg)](https://img.shields.io/pypi/status/drf-access-policy.svg/)
@@ -34,6 +36,9 @@ This project has complete test coverage and the base `AccessPolicy` class is onl
 ---
 
 # Changelog <a id="changelog"></a>
+
+## 0.8.2 (December 2020)
+* Handle scope from JWT token
 
 ## 0.8.1 (October 2020)
 * Fixes case where object has no `action_map`. Thanks @oguzhancelikarslan!
